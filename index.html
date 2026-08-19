@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bench 03: the price is in the URL, so it is not yours</title>
+<meta name="description" content="A live bench. Edit the price in a prefill link, authorize the form, and see what the office sees. Then build the charge server side and try again.">
+<link rel="canonical" href="https://michegz.github.io/price-in-the-url/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23EDF1F2'/%3E%3Crect x='5' y='8' width='22' height='3' fill='%23101A1F'/%3E%3Crect x='5' y='14.5' width='22' height='3' fill='%23B3301C'/%3E%3Crect x='5' y='21' width='22' height='3' fill='%23101A1F'/%3E%3C/svg%3E">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://michegz.github.io/price-in-the-url/">
+<meta property="og:site_name" content="Bench 03">
+<meta property="og:title" content="Hidden and read-only is not the same as secure.">
+<meta property="og:description" content="Edit the price in the link, authorize the form, and see what the office sees. Nothing to install.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Hidden and read-only is not the same as secure.">
+<meta name="twitter:description" content="Edit the price in the link, authorize the form, and see what the office sees. Nothing to install.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EDF1F2;--grid:#E2E8E9;--rule:#C3CFD2;
+  --ink:#101A1F;--ink-soft:#5B6E75;--ghost:#93A5AB;
+  --stamp:#2A4B8D;--alarm:#B3301C;
+  --pad:clamp(1.25rem,4vw,3rem);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:16px;line-height:1.55;
+}
+.wrap{max-width:1080px;margin:0 auto;padding:0 var(--pad)}
+a{color:var(--stamp)}
+:focus-visible{outline:2px solid var(--stamp);outline-offset:2px}
+
+.masthead{border-bottom:1px solid var(--ink);padding:14px 0 12px;display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;justify-content:space-between}
+.masthead-id{font-family:"IBM Plex Mono",monospace;font-size:.72rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase}
+.masthead-state{font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
+.masthead-state[data-state="loss"]{color:var(--alarm);font-weight:600}
+.masthead-state[data-state="held"]{color:var(--stamp);font-weight:600}
+
+.hero{padding:clamp(2.5rem,7vw,5rem) 0 clamp(2rem,5vw,3rem);display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:clamp(1.5rem,5vw,3.5rem);align-items:start}
+.hero-head{font-family:"Archivo",sans-serif;font-variation-settings:"wdth" 118;font-weight:700;font-size:clamp(2.1rem,6.2vw,4rem);line-height:.98;letter-spacing:-.015em;margin:0 0 1.1rem;text-transform:uppercase}
+.hero-head em{font-style:normal;display:block;font-variation-settings:"wdth" 78;color:var(--alarm)}
+.hero-sub{margin:0 0 1rem;max-width:48ch;color:var(--ink-soft);font-size:1.02rem}
+.hero-sub:last-child{margin-bottom:0}
+.hero-sub strong{color:var(--ink);font-weight:600}
+.hero-sub code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--ink)}
+
+.tally{border:1px solid var(--ink);background:rgba(255,255,255,.55);padding:1.1rem 1.25rem 1.25rem}
+.tally-title{font-family:"IBM Plex Mono",monospace;font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 .85rem}
+.tally-row{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;padding:.42rem 0;border-bottom:1px dotted var(--rule)}
+.tally-row:last-of-type{border-bottom:0}
+.tally-label{font-family:"IBM Plex Mono",monospace;font-size:.78rem;letter-spacing:.05em;color:var(--ink-soft)}
+.tally-num{font-family:"Archivo",sans-serif;font-variation-settings:"wdth" 78;font-weight:700;font-size:1.4rem;line-height:1}
+.tally-num[data-alarm="1"]{color:var(--alarm)}
+
+.band{border-top:1px solid var(--ink);padding:clamp(1.75rem,4vw,2.75rem) 0}
+.band-head{display:flex;flex-wrap:wrap;gap:.75rem 1.5rem;align-items:baseline;justify-content:space-between;margin-bottom:1.25rem}
+.band-title{font-family:"Archivo",sans-serif;font-variation-settings:"wdth" 82;font-weight:700;font-size:clamp(1.1rem,2.6vw,1.5rem);text-transform:uppercase;letter-spacing:.02em;margin:0}
+.band-note{font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.08em;color:var(--ink-soft);margin:0;max-width:54ch}
+
+.controls{display:flex;flex-wrap:wrap;gap:.75rem 1.25rem;align-items:center;margin-bottom:1.25rem}
+.btn{font-family:"IBM Plex Mono",monospace;font-size:.76rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:.7rem 1.15rem;border:1px solid var(--ink);border-radius:0;background:var(--ink);color:var(--paper);cursor:pointer}
+.btn[data-variant="ghost"]{background:transparent;color:var(--ink)}
+.btn:hover{background:var(--stamp);border-color:var(--stamp);color:#fff}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.switch{display:inline-flex;align-items:center;gap:.6rem;cursor:pointer;font-family:"IBM Plex Mono",monospace;font-size:.76rem;letter-spacing:.06em;border:1px solid var(--ink);padding:.55rem .9rem;background:rgba(255,255,255,.55)}
+.switch input{width:1rem;height:1rem;accent-color:var(--stamp);margin:0}
+.switch b{font-weight:600}
+
+/* the address bar: the signature element */
+.omnibox{border:1px solid var(--ink);background:#fff;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:stretch;margin-bottom:.6rem}
+.omnibox-lock{display:flex;align-items:center;gap:.4rem;padding:.65rem .8rem;border-right:1px solid var(--rule);font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap}
+.omnibox input{border:0;outline:0;padding:.65rem .8rem;font-family:"IBM Plex Mono",monospace;font-size:.85rem;color:var(--ink);width:100%;background:transparent}
+.omnibox-hint{font-family:"IBM Plex Mono",monospace;font-size:.7rem;color:var(--ink-soft);margin:0 0 1.25rem}
+.omnibox-hint b{color:var(--alarm)}
+
+/* the form */
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1.25rem}
+.panel{border:1px solid var(--ink);background:rgba(255,255,255,.62)}
+.panel-head{padding:.85rem 1rem;border-bottom:1px solid var(--ink);font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;display:flex;justify-content:space-between;gap:1rem}
+.panel-head span:last-child{color:var(--ink-soft)}
+.panel-body{padding:1rem}
+.field{display:grid;gap:.2rem;margin-bottom:.85rem}
+.field:last-child{margin-bottom:0}
+.field-label{font-family:"IBM Plex Mono",monospace;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft)}
+.field-val{font-size:.98rem}
+.field-val.big{font-family:"Archivo",sans-serif;font-variation-settings:"wdth" 82;font-weight:700;font-size:1.9rem;line-height:1.1}
+.field-val.big[data-alarm="1"]{color:var(--alarm)}
+.field-note{font-family:"IBM Plex Mono",monospace;font-size:.66rem;color:var(--ink-soft)}
+.sigline{border-top:1px dotted var(--rule);margin-top:.9rem;padding-top:.75rem;font-size:.88rem;color:var(--ink-soft)}
+.sigline b{color:var(--ink);font-family:"Archivo",sans-serif;font-variation-settings:"wdth" 88;font-weight:700;font-size:1.05rem}
+
+/* office receipt */
+.receipt{font-family:"IBM Plex Mono",monospace;font-size:.82rem}
+.receipt-row{display:flex;justify-content:space-between;gap:1rem;padding:.35rem 0;border-bottom:1px dotted var(--rule)}
+.receipt-row:last-child{border-bottom:0}
+.receipt-row b{font-weight:600}
+.stamp-paid{display:inline-block;border:2px solid var(--ink);padding:.3rem .7rem;font-family:"IBM Plex Mono",monospace;font-size:.78rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;margin-top:.85rem}
+.stamp-paid[data-kind="loss"]{color:var(--alarm);border-color:var(--alarm)}
+.stamp-paid[data-kind="ok"]{color:var(--stamp);border-color:var(--stamp)}
+.stamp-paid[data-kind="blocked"]{color:var(--stamp);border-color:var(--stamp)}
+
+.verdict{margin-top:1.25rem;border:1px solid var(--ink);padding:1rem 1.15rem;background:rgba(255,255,255,.62)}
+.verdict-line{font-family:"Archivo",sans-serif;font-variation-settings:"wdth" 82;font-weight:700;text-transform:uppercase;font-size:1.05rem;margin:0 0 .4rem}
+.verdict[data-kind="loss"] .verdict-line{color:var(--alarm)}
+.verdict[data-kind="held"] .verdict-line{color:var(--stamp)}
+.verdict p:last-child{margin:0;color:var(--ink-soft);font-size:.94rem}
+
+.limits{margin:0;padding:0;list-style:none;display:grid;gap:.85rem}
+.limits li{display:grid;grid-template-columns:1.6rem minmax(0,1fr);gap:.6rem;align-items:start}
+.limits span{font-family:"IBM Plex Mono",monospace;font-size:.72rem;font-weight:600;color:var(--alarm);padding-top:.2rem}
+.limits p{margin:0;color:var(--ink-soft);font-size:.95rem}
+.limits b{color:var(--ink);font-weight:600}
+
+.source{margin:0;padding:1rem;border:1px solid var(--ink);background:rgba(255,255,255,.62);font-family:"IBM Plex Mono",monospace;font-size:.76rem;line-height:1.5;overflow-x:auto;white-space:pre}
+
+.colophon{border-top:1px solid var(--ink);padding:1.5rem 0 3rem;margin-top:.5rem}
+.sig{margin:0 0 .5rem;font-size:.95rem}
+.sig strong{font-weight:600}
+.sig-link{font-family:"IBM Plex Mono",monospace;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+.credit{margin:.75rem 0 0;font-size:.82rem;color:var(--ink-soft);max-width:62ch}
+
+@media (max-width:820px){
+  .hero{grid-template-columns:minmax(0,1fr);gap:2rem}
+  .split{grid-template-columns:minmax(0,1fr)}
+  .omnibox{grid-template-columns:minmax(0,1fr)}
+  .omnibox-lock{border-right:0;border-bottom:1px solid var(--rule)}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="masthead">
+  <p class="masthead-id">Bench 03 &middot; Quote integrity</p>
+  <p class="masthead-state" id="state" data-state="idle">Idle &middot; price taken from the link</p>
+</header>
+
+<section class="hero">
+  <div>
+    <h1 class="hero-head">The price is in the URL<em>So it is not yours</em></h1>
+    <p class="hero-sub">This is the ordinary way to send a customer a pre-filled payment form: put the quote in the link, mark the field hidden and read-only, and trust it back. <strong>Hidden and read-only are properties of a browser, not of your money.</strong></p>
+    <p class="hero-sub">The address bar below is editable. <strong>Change <code>basePrice</code> to whatever you feel like paying</strong>, open the form, and authorize. Then tick the box that builds the charge on the server and try the same thing.</p>
+    <p class="hero-sub">No network calls, no card processor, no signup. Everything is computed in this page.</p>
+  </div>
+  <div class="tally">
+    <p class="tally-title">Last authorization</p>
+    <div class="tally-row"><span class="tally-label">Job is worth</span><span class="tally-num" id="t-quote">$450.00</span></div>
+    <div class="tally-row"><span class="tally-label">Customer authorized</span><span class="tally-num" id="t-charged">--</span></div>
+    <div class="tally-row"><span class="tally-label">Shortfall</span><span class="tally-num" id="t-short" data-alarm="0">--</span></div>
+    <div class="tally-row"><span class="tally-label">Office was warned</span><span class="tally-num" id="t-warned">--</span></div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="band-head">
+    <h2 class="band-title">The link your customer receives</h2>
+    <p class="band-note">Edit it. That is the entire attack, and it needs no tools.</p>
+  </div>
+
+  <div class="omnibox">
+    <span class="omnibox-lock">&#128274; https</span>
+    <label for="url" class="visually-hidden" style="position:absolute;left:-9999px">Prefill link</label>
+    <input id="url" type="text" spellcheck="false" autocomplete="off">
+  </div>
+  <p class="omnibox-hint">Try <b>basePrice=50.00</b>. The office quoted <b>$450.00</b> for job J-4471.</p>
+
+  <div class="controls">
+    <label class="switch"><input type="checkbox" id="serverside"> <b>Build the charge server side from the job record</b></label>
+    <button class="btn" id="open" type="button">Open the form and authorize</button>
+    <button class="btn" data-variant="ghost" id="reset" type="button">Reset the link</button>
+  </div>
+
+  <div class="split">
+    <div class="panel">
+      <div class="panel-head"><span>What the customer signs</span><span id="cust-mode">prefilled form</span></div>
+      <div class="panel-body" id="customer">
+        <p class="field-note">Nothing authorized yet. Edit the link and press the button.</p>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><span>What the office sees</span><span>job J-4471</span></div>
+      <div class="panel-body" id="office">
+        <p class="field-note">No record yet.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="verdict"></div>
+</section>
+
+<section class="band">
+  <div class="band-head"><h2 class="band-title">What this does not catch</h2></div>
+  <ul class="limits">
+    <li><span>01</span><p><b>Server-side pricing is one control, not a payment security review.</b> It fixes the number. It says nothing about who is allowed to open that job, how long the link stays valid, or whether the same authorization can be replayed tomorrow.</p></li>
+    <li><span>02</span><p><b>A signed token in the link is the other valid fix, and it is not shown here.</b> The price never travels, only a one-time reference the server exchanges for the real quote. It is stronger for high-volume work and more moving parts to own. This bench shows the simpler build because most small offices should take that one.</p></li>
+    <li><span>03</span><p><b>The mismatch has to reach a human.</b> This page surfaces the tampering attempt because I wrote it to. A real build that silently corrects the number and charges the right amount is safe and still hides the fact that somebody tried.</p></li>
+    <li><span>04</span><p><b>Nothing here addresses a payment that succeeds while the confirmation fails.</b> That is a separate failure path and it needs its own handling, or the money moves and the record does not.</p></li>
+    <li><span>05</span><p><b>This is a model, not your form.</b> There is no Jotform, no Square, and no card processor on this page. It reproduces one defect in the pattern that connects them, so you can see the shape of it in thirty seconds.</p></li>
+  </ul>
+</section>
+
+<section class="band">
+  <div class="band-head">
+    <h2 class="band-title">The function, verbatim</h2>
+    <p class="band-note">Printed from the running function itself, so what you read cannot drift from what just ran.</p>
+  </div>
+  <pre class="source" id="source"></pre>
+</section>
+
+<footer class="colophon">
+  <p class="sig">Built by <strong>Michelle W.</strong>, automation engineer, Lafayette, Louisiana.
+  I build workflow automations and the failure paths that go with them.
+  <a class="sig-link" href="https://www.upwork.com/freelancers/~01b59471ec1e32fbdb">Hire me on Upwork</a></p>
+  <p class="credit">Everything on this page is invented: the job number, the office, the customer, the quote. No real business is represented and no claim is made about any specific product. This bench exists because the defect it shows is the default outcome of the most obvious way to wire a prefilled form to a payment.</p>
+  <p class="credit">See also <a href="https://michegz.github.io/guardrail-bench/">Bench 01</a>, nine hostile model outputs against a validation node, and <a href="https://michegz.github.io/agent-authz-bench/">Bench 02</a>, an agent against a booking API with one missing authorization check.</p>
+</footer>
+
+</div>
+
+<script>
+/* ---------------------------------------------------------------
+   The control under test. This is the entire fix.
+   --------------------------------------------------------------- */
+function resolveAmount(requestedAmount, jobRecord, buildOnServer) {
+  if (!buildOnServer) {
+    // The prefill build: whatever arrived in the link becomes the charge.
+    return { amount: requestedAmount, source: 'the link', tampered: null };
+  }
+  // The server-side build: the link is display only. The charge is the quote
+  // the office recorded, looked up by job id, and never sent to the browser
+  // in a form the browser can change.
+  var tampered = Math.abs(requestedAmount - jobRecord.quote) > 0.005;
+  return { amount: jobRecord.quote, source: 'the job record', tampered: tampered };
+}
+
+/* ---------------------------------------------------------------
+   One job, as the office recorded it. No network, no processor.
+   --------------------------------------------------------------- */
+var JOB = { id: 'J-4471', service: 'Direct cremation, package B', quote: 450.00, customer: 'R. Guidry' };
+var BASE = 'form.example.com/authorize?job=J-4471&customer=R.Guidry&basePrice=';
+var DEFAULT_URL = BASE + '450.00&readonly=1&hidden=1';
+
+var urlEl    = document.getElementById('url');
+var custEl   = document.getElementById('customer');
+var custMode = document.getElementById('cust-mode');
+var officeEl = document.getElementById('office');
+var verdictEl= document.getElementById('verdict');
+var stateEl  = document.getElementById('state');
+var serverEl = document.getElementById('serverside');
+var openBtn  = document.getElementById('open');
+var resetBtn = document.getElementById('reset');
+var tQuote = document.getElementById('t-quote');
+var tCharged = document.getElementById('t-charged');
+var tShort = document.getElementById('t-short');
+var tWarned = document.getElementById('t-warned');
+
+function money(n) {
+  return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function esc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function readPrice() {
+  var m = /basePrice=([0-9]*\.?[0-9]*)/.exec(urlEl.value);
+  if (!m || m[1] === '' || isNaN(parseFloat(m[1]))) return null;
+  return parseFloat(m[1]);
+}
+
+function resetAll() {
+  urlEl.value = DEFAULT_URL;
+  custEl.innerHTML = '<p class="field-note">Nothing authorized yet. Edit the link and press the button.</p>';
+  officeEl.innerHTML = '<p class="field-note">No record yet.</p>';
+  verdictEl.innerHTML = '';
+  custMode.textContent = serverEl.checked ? 'display only' : 'prefilled form';
+  tQuote.textContent = money(JOB.quote);
+  tCharged.textContent = '--';
+  tShort.textContent = '--';
+  tShort.dataset.alarm = '0';
+  tWarned.textContent = '--';
+  stateEl.dataset.state = 'idle';
+  stateEl.textContent = 'Idle · price ' + (serverEl.checked ? 'from the job record' : 'taken from the link');
+}
+
+function authorize() {
+  var requested = readPrice();
+  if (requested === null) {
+    custEl.innerHTML = '<p class="field-note">There is no readable <b>basePrice</b> in that link. ' +
+      'Put a number back, or press Reset the link.</p>';
+    return;
+  }
+
+  var result = resolveAmount(requested, JOB, serverEl.checked);
+  var shortfall = JOB.quote - result.amount;
+
+  /* ---- what the customer signs ---- */
+  custMode.textContent = serverEl.checked ? 'display only' : 'prefilled form';
+  custEl.innerHTML =
+    '<div class="field"><span class="field-label">Service</span>' +
+      '<span class="field-val">' + esc(JOB.service) + '</span></div>' +
+    '<div class="field"><span class="field-label">Amount to authorize</span>' +
+      '<span class="field-val big" data-alarm="' + (shortfall > 0 ? '1' : '0') + '">' + money(result.amount) + '</span>' +
+      '<span class="field-note">taken from ' + esc(result.source) +
+        (serverEl.checked ? ' &middot; the form field is display only' : ' &middot; field marked hidden and read-only') +
+      '</span></div>' +
+    '<div class="sigline">Electronically signed by <b>' + esc(JOB.customer) + '</b>' +
+      '<br><span class="field-note">"I authorize the amount shown above."</span></div>';
+
+  /* ---- what the office sees ---- */
+  var rows =
+    '<div class="receipt">' +
+      '<div class="receipt-row"><span>job</span><b>' + esc(JOB.id) + '</b></div>' +
+      '<div class="receipt-row"><span>quoted</span><b>' + money(JOB.quote) + '</b></div>' +
+      '<div class="receipt-row"><span>authorized</span><b>' + money(result.amount) + '</b></div>' +
+      '<div class="receipt-row"><span>signed authorization</span><b>on file</b></div>' +
+    '</div>';
+
+  var stampKind, stampText, warned;
+  if (result.tampered) {
+    stampKind = 'blocked'; warned = true;
+    stampText = 'Charged ' + money(result.amount) + ' &middot; link said ' + money(requested);
+    rows += '<div class="stamp-paid" data-kind="blocked">' + stampText + '</div>' +
+      '<p class="field-note" style="margin-top:.6rem">Mismatch surfaced for review. The link asked for ' +
+      money(requested) + ' and the job record says ' + money(JOB.quote) + '.</p>';
+  } else if (shortfall > 0) {
+    stampKind = 'loss'; warned = false;
+    rows += '<div class="stamp-paid" data-kind="loss">Paid &middot; ' + money(result.amount) + '</div>' +
+      '<p class="field-note" style="margin-top:.6rem">Nothing here looks wrong. There is a signed authorization, ' +
+      'a completed payment, and a customer who agreed to the amount on the screen.</p>';
+  } else {
+    stampKind = 'ok'; warned = false;
+    rows += '<div class="stamp-paid" data-kind="ok">Paid &middot; ' + money(result.amount) + '</div>';
+  }
+  officeEl.innerHTML = rows;
+
+  /* ---- tallies ---- */
+  tCharged.textContent = money(result.amount);
+  tShort.textContent = shortfall > 0 ? money(shortfall) : money(0);
+  tShort.dataset.alarm = shortfall > 0 ? '1' : '0';
+  tWarned.textContent = warned ? 'yes' : 'no';
+
+  /* ---- verdict ---- */
+  var v = document.createElement('div');
+  v.className = 'verdict';
+  if (shortfall > 0) {
+    v.dataset.kind = 'loss';
+    stateEl.dataset.state = 'loss';
+    stateEl.textContent = 'Paid ' + money(result.amount) + ' on a ' + money(JOB.quote) + ' job';
+    v.innerHTML =
+      '<p class="verdict-line">' + money(shortfall) + ' gone, and the paperwork is perfect.</p>' +
+      '<p>The customer authorized the amount they were shown, so the signature is genuine and the ' +
+      'payment succeeded. Nobody has to notice until someone reconciles the job against the deposit, ' +
+      'which in a small office can be weeks. <strong>Now tick the server-side box and try the same link.</strong></p>';
+  } else if (result.tampered) {
+    v.dataset.kind = 'held';
+    stateEl.dataset.state = 'held';
+    stateEl.textContent = 'Charged ' + money(result.amount) + ' · tampering surfaced';
+    v.innerHTML =
+      '<p class="verdict-line">Charged the quote. The attempt was recorded.</p>' +
+      '<p>The link still says whatever you typed, because you can always edit your own address bar. ' +
+      'It stopped mattering the moment the amount stopped travelling in it. ' +
+      'The office charged ' + money(JOB.quote) + ' from its own record and the mismatch was surfaced ' +
+      'rather than silently corrected, because somebody trying is worth knowing about.</p>';
+  } else {
+    v.dataset.kind = 'held';
+    stateEl.dataset.state = 'held';
+    stateEl.textContent = 'Paid ' + money(result.amount) + ' · matches the quote';
+    v.innerHTML =
+      '<p class="verdict-line">Paid in full.</p>' +
+      '<p>This is the honest path, and it looks identical to the dishonest one from the office side. ' +
+      'That is the point: with the price in the link you cannot tell these two apart after the fact. ' +
+      '<strong>Edit basePrice and run it again.</strong></p>';
+  }
+  verdictEl.innerHTML = '';
+  verdictEl.appendChild(v);
+}
+
+openBtn.addEventListener('click', authorize);
+resetBtn.addEventListener('click', resetAll);
+serverEl.addEventListener('change', resetAll);
+urlEl.addEventListener('keydown', function (e) { if (e.key === 'Enter') authorize(); });
+
+document.getElementById('source').textContent = resolveAmount.toString();
+resetAll();
+</script>
+</body>
+</html>
